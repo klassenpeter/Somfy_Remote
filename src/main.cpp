@@ -34,6 +34,7 @@ struct REMOTE {
 WiFiClient wifiClient;
 PubSubClient mqtt(wifiClient);
 
+// Buttons
 #define SYMBOL 640
 #define HAUT 0x2
 #define STOP 0x1
@@ -51,7 +52,7 @@ void setup() {
     // USB serial port
     Serial.begin(115200);
 
-    // Output to 433MHz transmitter
+    // Output to 433.42MHz transmitter
     pinMode(PORT_TX, OUTPUT);
     GPIO.out_w1tc = 1 << PORT_TX; // Output = 0
 
@@ -83,6 +84,7 @@ void setup() {
         preferences.clear();
     #endif
 
+    // Print out all the configured remotes
     for ( REMOTE remote : remotes ) {
         Serial.print("Simulated remote number : ");
         Serial.println(remote.id, HEX);
@@ -93,7 +95,7 @@ void setup() {
 }
 
 void loop() {
-
+    // Reconnect MQTT if needed
     if ( !mqtt.connected() ) {
         mqttconnect();
     }
@@ -106,14 +108,19 @@ void mqttconnect() {
     while ( !mqtt.connected() ) {
         Serial.print("MQTT connecting ...");
 
-        if (mqtt.connect(mqtt_id, mqtt_user, mqtt_password)) {
+        // Connect to MQTT, with retained last will message "offline"
+        if (mqtt.connect(mqtt_id, mqtt_user, mqtt_password, status_topic, 1, 1, "offline")) {
             Serial.println("connected");
-            // Subscribe topics with QoS 1
+
+            // Subscribe to the topic of each remote with QoS 1
             for ( REMOTE remote : remotes ) {
                 mqtt.subscribe(remote.mqtt_topic, 1);
                 Serial.print("Subscribed to topic: ");
                 Serial.println(remote.mqtt_topic);
             }
+
+            // Update status, message is retained
+            mqtt.publish(status_topic, "online", true);
         }
         else {
             Serial.print("failed, status code =");
@@ -173,6 +180,13 @@ void receivedCallback(char* topic, byte* payload, unsigned int length) {
         for ( int i = 0; i<2; i++ ) {
             SendCommand(frame, 7);
         }
+
+        // Send the MQTT ack message
+        String ackString = "id: 0x";
+        ackString.concat( String(currentRemote.id, HEX) );
+        ackString.concat(", cmd: ");
+        ackString.concat(command);
+        mqtt.publish(ack_topic, ackString.c_str());
     }
 }
 

@@ -1,5 +1,5 @@
 # Somfy Remote
-An Arduino program able to emulate a Somfy remote control.
+An ESP32 Arduino program able to emulate a Somfy remote control.
 
 Forked from https://github.com/Nickduino/Somfy_Remote.
 

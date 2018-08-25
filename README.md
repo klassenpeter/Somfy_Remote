@@ -1,17 +1,29 @@
 # Somfy Remote
-An Arduino Sketch able to emulate a Somfy remote control.
+An Arduino program able to emulate a Somfy remote control.
 
+Forked from https://github.com/Nickduino/Somfy_Remote.
 
 If you want to learn more about the Somfy RTS protocol, check out [Pushtack](https://pushstack.wordpress.com/somfy-rts-protocol/).
 
 
-
 **How the hardware works:**
-Connect a *433.42 Mhz* RF transmitter to Arduino Pin 5 (or change the pin in the sketch). I couldn't find a 433.*42* MHz transmitter so I hacked a remote to send my signals. I then ordered 433.42 MHz crystals to change the regular 433.92 MHz ones I have on my transmitters: that's the cheapest way to do it. Other option would be to use a tunable transmitter (but that hardly looks like the easy way and I'm not a ham radio, so...).
+Connect a *433.42 Mhz* RF transmitter to Pin 23 of the ESP32 (or change the pin in the config file). I ordered 433.42 MHz crystals to replace the one on a 433.92MHz transmitter.
+A RTL-SDR comes in handy to check the frequency and make sure the transmitter is working.
 
 
 **How the software works:**
-What you really want to keep here are the BuildFrame() and SendCommand() procedures. Input the *remote address* and the *rolling code* value and you have a remote. With the sketch, you can send the command through serial line but that would be easily modified to button press or whatever (I plan on running it on an internet-connected ESP8266 to shut the blinds at sunset every day).
+Edit [config.h](https://github.com/marmotton/Somfy_Remote/blob/master/src/config_EXAMPLE.h) to adapt to your location. You can add or remove remotes to your liking.
 
+The ESP32 will subscribe to the configured MQTT topics. Watch what is happening on the serial port to make sure it is working.
 
-The rolling code value is stored in the EEPROM, so that you don't loose count of your rolling code after a reset.
+Programming the blinds:
+  1) Press the program button on your actual remote. The blinds will move slightly.
+  2) Publish 'p' message on the corresponding MQTT topic. The blinds will move slightly.
+  3) Done !
+
+Simply publish these messages on the corresponding topics to control your blinds:
+  - u (up)
+  - d (down)
+  - s (stop, my)
+
+The rolling code value is stored in the EEPROM, so that you don't loose count of your rolling code after a reset. In case you'd like to replace the ESP32, write down the current rolling codes which can be read using the serial terminal (and use them as default rolling codes in config.h).

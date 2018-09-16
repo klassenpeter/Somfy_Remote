@@ -1,6 +1,7 @@
 // You can add as many remote control emulators as you want by adding elements to the "remotes" vector
 // The id and mqtt_topic can have any value but must be unique
 // default_rolling_code can be any unsigned int, usually leave it at 1
+// eeprom_address must be incremented by 4 for each remote
 
 // Once the programe is uploaded on the ESP32:
 // - Long-press the program button of YOUR ACTUAL REMOTE until your blind goes up and down slightly
@@ -12,17 +13,19 @@
 // - s make it stop
 // - d will make it go down
 
-//                                 id            mqtt_topic     default_rolling_code
-std::vector<REMOTE> const remotes = {{0x184623, "smartHome/livingRoom/blinds", 1}
-                                    ,{0x971547, "smartHome/office/blinds",     1}
-                                    ,{0x336124, "smartHome/balcony/awning",    1}
-                                    ,{0x187542, "smartHome/kitchen/blinds",    1}
-                                    ,{0x244412, "smartHome/room1/blinds",      1}
+
+//                                 id            mqtt_topic     default_rolling_code     eeprom_address
+std::vector<REMOTE> const remotes = {{0x184623, "smartHome/livingRoom/blinds", 1,                0 }
+                                    ,{0x971547, "smartHome/office/blinds",     1,                4 }
+                                    ,{0x336124, "smartHome/balcony/awning",    1,                8 }
+                                    ,{0x187542, "smartHome/kitchen/blinds",    1,               12 }
+                                    ,{0x244412, "smartHome/room1/blinds",      1,               16 }
                                     };
 
-// Uncomment the following line to clear the rolling codes stored in the non-volatile storage
+// Change reset_rolling_codes to true to clear the rolling codes stored in the non-volatile storage
 // The default_rolling_code will be used
-//#define RESET_ROLLING_CODES
+
+const bool reset_rolling_codes = false;
 
 const char*        wifi_ssid = "myWIFISSID";
 const char*    wifi_password = "superSecretPassword1234";
@@ -36,4 +39,4 @@ const char*          mqtt_id = "esp32-somfy-remote";
 const char*     status_topic = "smartHome/somfy-remote/status"; // Online / offline
 const char*        ack_topic = "smartHome/somfy-remote/ack"; // Commands ack "id: 0x184623, cmd: u"
 
-#define PORT_TX 23 // Output data on pin 23 (can range from 0 to 31)
+#define PORT_TX 23 // Output data on pin 23 (can range from 0 to 31). Check pin numbering on ESP8266.

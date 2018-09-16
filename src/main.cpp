@@ -14,21 +14,41 @@ Modifications should only be needed in config.h.
 
 */
 
+// GPIO macros
+#ifdef ESP32
+    #define SIG_HIGH GPIO.out_w1ts = 1 << PORT_TX
+    #define SIG_LOW  GPIO.out_w1tc = 1 << PORT_TX
+#elif ESP8266
+    #define SIG_HIGH GPIO_REG_WRITE(GPIO_OUT_W1TS_ADDRESS, 1 << PORT_TX)
+    #define SIG_LOW  GPIO_REG_WRITE(GPIO_OUT_W1TC_ADDRESS, 1 << PORT_TX)
+#endif
+
 // Store the rolling codes in NVS
-#include <Preferences.h>
-Preferences preferences;
+#ifdef ESP32
+    #include <Preferences.h>
+    Preferences preferences;
+#elif ESP8266
+    #include <EEPROM.h>
+#endif
+
 
 // Configuration of the remotes that will be emulated
 struct REMOTE {
     unsigned int id;
     char const* mqtt_topic;
     unsigned int default_rolling_code;
+    uint32_t eeprom_address;
 };
 
 #include "config.h"
 
 // Wifi and MQTT
-#include <WiFi.h>
+#ifdef ESP32
+    #include <WiFi.h>
+#elif ESP8266
+    #include <ESP8266WiFi.h>
+#endif
+
 #include <PubSubClient.h>
 
 WiFiClient wifiClient;
@@ -54,7 +74,7 @@ void setup() {
 
     // Output to 433.42MHz transmitter
     pinMode(PORT_TX, OUTPUT);
-    GPIO.out_w1tc = 1 << PORT_TX; // Output = 0
+    SIG_LOW;
 
     // Connect to WiFi
     Serial.print("Connecting to ");
@@ -77,19 +97,38 @@ void setup() {
     mqtt.setCallback(receivedCallback);
 
     // Open storage for storing the rolling codes
-    preferences.begin("somfy-remote", false);
-
-    // Clear all the stored rolling codes (not used during normal operation)
-    #ifdef RESET_ROLLING_CODES
-        preferences.clear();
+    #ifdef ESP32
+        preferences.begin("somfy-remote", false);
+    #elif ESP8266
+        EEPROM.begin(1024);
     #endif
 
-    // Print out all the configured remotes
+    // Clear all the stored rolling codes (not used during normal operation). Only ESP32 here (ESP8266 further below).
+    #ifdef ESP32
+        if ( reset_rolling_codes ) {
+                preferences.clear();
+        }
+    #endif
+
+    // Print out all the configured remotes.
+    // Also reset the rolling codes for ESP8266 if needed.
     for ( REMOTE remote : remotes ) {
         Serial.print("Simulated remote number : ");
         Serial.println(remote.id, HEX);
         Serial.print("Current rolling code    : ");
-        Serial.println( preferences.getUInt( (String(remote.id) + "rolling").c_str(), remote.default_rolling_code) );
+        unsigned int current_code;
+
+        #ifdef ESP32
+            current_code = preferences.getUInt( (String(remote.id) + "rolling").c_str(), remote.default_rolling_code);
+        #elif ESP8266
+            if ( reset_rolling_codes ) {
+                EEPROM.put( remote.eeprom_address, remote.default_rolling_code );
+                EEPROM.commit();
+            }
+            EEPROM.get( remote.eeprom_address, current_code );
+        #endif
+
+        Serial.println( current_code );
     }
     Serial.println();
 }
@@ -191,7 +230,13 @@ void receivedCallback(char* topic, byte* payload, unsigned int length) {
 }
 
 void BuildFrame(byte *frame, byte button, REMOTE remote) {
-    unsigned int code = preferences.getUInt( (String(remote.id) + "rolling").c_str(), remote.default_rolling_code);
+    unsigned int code;
+
+    #ifdef ESP32
+        code = preferences.getUInt( (String(remote.id) + "rolling").c_str(), remote.default_rolling_code);
+    #elif ESP8266
+        EEPROM.get( remote.eeprom_address, code );
+    #endif
 
     frame[0] = 0xA7;            // Encryption key. Doesn't matter much
     frame[1] = button << 4;     // Which button did  you press? The 4 LSB will be the checksum
@@ -245,49 +290,53 @@ void BuildFrame(byte *frame, byte button, REMOTE remote) {
     Serial.print("Rolling Code  : ");
     Serial.println(code);
 
-    preferences.putUInt( (String(remote.id) + "rolling").c_str(), code + 1); // Increment and store the rolling code
+    #ifdef ESP32
+        preferences.putUInt( (String(remote.id) + "rolling").c_str(), code + 1); // Increment and store the rolling code
+    #elif ESP8266
+        EEPROM.put( remote.eeprom_address, code + 1 );
+        EEPROM.commit();
+    #endif
 }
 
 void SendCommand(byte *frame, byte sync) {
     if(sync == 2) { // Only with the first frame.
         //Wake-up pulse & Silence
-        GPIO.out_w1ts = 1 << PORT_TX;
+        SIG_HIGH;
         delayMicroseconds(9415);
-        GPIO.out_w1tc = 1 << PORT_TX;
+        SIG_LOW;
         delayMicroseconds(89565);
     }
 
     // Hardware sync: two sync for the first frame, seven for the following ones.
     for (int i = 0; i < sync; i++) {
-        GPIO.out_w1ts = 1 << PORT_TX;
+        SIG_HIGH;
         delayMicroseconds(4*SYMBOL);
-        GPIO.out_w1tc = 1 << PORT_TX;
+        SIG_LOW;
         delayMicroseconds(4*SYMBOL);
     }
 
     // Software sync
-    GPIO.out_w1ts = 1 << PORT_TX;
+    SIG_HIGH;
     delayMicroseconds(4550);
-    GPIO.out_w1tc = 1 << PORT_TX;
+    SIG_LOW;
     delayMicroseconds(SYMBOL);
-
 
     //Data: bits are sent one by one, starting with the MSB.
     for(byte i = 0; i < 56; i++) {
         if(((frame[i/8] >> (7 - (i%8))) & 1) == 1) {
-            GPIO.out_w1tc = 1 << PORT_TX; // PORTD &= !(1<<PORT_TX);
+            SIG_LOW;
             delayMicroseconds(SYMBOL);
-            GPIO.out_w1ts = 1 << PORT_TX; // PORTD ^= 1<<5;
+            SIG_HIGH;
             delayMicroseconds(SYMBOL);
         }
         else {
-            GPIO.out_w1ts = 1 << PORT_TX; // PORTD |= (1<<PORT_TX);
+            SIG_HIGH;
             delayMicroseconds(SYMBOL);
-            GPIO.out_w1tc = 1 << PORT_TX; // PORTD ^= 1<<5;
+            SIG_LOW;
             delayMicroseconds(SYMBOL);
         }
     }
 
-    GPIO.out_w1tc = 1 << PORT_TX;
+    SIG_LOW;
     delayMicroseconds(30415); // Inter-frame silence
 }

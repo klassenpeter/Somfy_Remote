@@ -27,3 +27,10 @@ Simply publish these messages on the corresponding topics to control your blinds
   - s (stop, my)
 
 The rolling code value is stored in the EEPROM, so that you don't loose count of your rolling code after a reset. In case you'd like to replace the ESP, write down the current rolling codes which can be read using the serial terminal (and use them as default rolling codes in config.h).
+
+**My hardware**
+Some photos are in the [doc](https://github.com/marmotton/Somfy_Remote/blob/master/doc) folder.
+- ESP8266 board: [AliExpress link](https://www.aliexpress.com/item/D1-mini-Mini-NodeMcu-4M-bytes-Lua-WIFI-Internet-of-Things-development-board-based-ESP8266-by/32633763949.html)
+- 433MHz RF transmitter: [AliExpress link](https://www.aliexpress.com/item/433Mhz-RF-Transmitter-and-Receiver-Module-Link-Kit-for-ARM-MCU-WL-DIY-315MHZ-433MHZ-Wireless/32298304710.html)
+- 433.42MHz quartz: [eBay link](https://www.ebay.ch/itm/5PCS-433-42M-433-42MHz-R433-F433-SAW-Resonator-Crystals-TO-39-NEW/232574365405)
+- Housing: [Youmagine link](https://www.youmagine.com/designs/housing-for-a-d1-mini-with-rf)

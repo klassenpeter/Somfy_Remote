@@ -76,39 +76,6 @@ void setup() {
     pinMode(PORT_TX, OUTPUT);
     SIG_LOW;
 
-    // Connect to WiFi
-    Serial.print("Connecting to ");
-    Serial.println(wifi_ssid);
-
-    WiFi.begin(wifi_ssid, wifi_password);
-
-    #ifdef ESP32
-        WiFi.setHostname("ESP32-somfy");
-    #elif ESP8266
-        WiFi.hostname("ESP8266-somfy");
-    #endif
-
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
-
-    // TODO: measure power consumption to see if sleep type is useful + if frequency set in platformio.ini is useful
-    #ifdef ESP32
-         // TODO
-    #elif ESP8266
-        wifi_set_sleep_type(LIGHT_SLEEP_T);
-    #endif
-
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
-
-    // Configure MQTT
-    mqtt.setServer(mqtt_server, mqtt_port);
-    mqtt.setCallback(receivedCallback);
-
     // Open storage for storing the rolling codes
     #ifdef ESP32
         preferences.begin("somfy-remote", false);
@@ -144,6 +111,32 @@ void setup() {
         Serial.println( current_code );
     }
     Serial.println();
+
+    // Connect to WiFi
+    Serial.print("Connecting to ");
+    Serial.println(wifi_ssid);
+
+    WiFi.begin(wifi_ssid, wifi_password);
+
+    #ifdef ESP32
+        WiFi.setHostname("ESP32-somfy");
+    #elif ESP8266
+        WiFi.hostname("ESP8266-somfy");
+    #endif
+
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+
+    // Configure MQTT
+    mqtt.setServer(mqtt_server, mqtt_port);
+    mqtt.setCallback(receivedCallback);
 }
 
 void loop() {

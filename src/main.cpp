@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <vector>
 
+#include "RFM69.h"
 /* Adapted to run on ESP32 from original code at https://github.com/Nickduino/Somfy_Remote
 
 This program allows you to emulate a Somfy RTS or Simu HZ remote.
@@ -53,6 +54,7 @@ struct REMOTE {
 
 WiFiClient wifiClient;
 PubSubClient mqtt(wifiClient);
+RFM69 rfm69(RFM_CHIP_SELECT, RFM_RESET_PIN);
 
 // Buttons
 #define SYMBOL 640
@@ -74,6 +76,9 @@ void setup() {
 
     // Output to 433.42MHz transmitter
     pinMode(PORT_TX, OUTPUT);
+    pinMode(RFM_CHIP_SELECT, OUTPUT);
+    pinMode(RFM_RESET_PIN, OUTPUT);
+
     SIG_LOW;
 
     // Open storage for storing the rolling codes
@@ -137,6 +142,10 @@ void setup() {
     // Configure MQTT
     mqtt.setServer(mqtt_server, mqtt_port);
     mqtt.setCallback(receivedCallback);
+
+    rfm69.init();
+    rfm69.setFrequency(RF_FREQUENCY);
+    Serial.println("RFM69 Radio initialized");
 }
 
 void loop() {
@@ -307,6 +316,8 @@ void BuildFrame(byte *frame, byte button, REMOTE remote) {
 }
 
 void SendCommand(byte *frame, byte sync) {
+    rfm69.setRegister(0x01, 0x0c); // enable transmission mode
+
     if(sync == 2) { // Only with the first frame.
         //Wake-up pulse & Silence
         SIG_HIGH;
@@ -347,4 +358,5 @@ void SendCommand(byte *frame, byte sync) {
 
     SIG_LOW;
     delayMicroseconds(30415); // Inter-frame silence
+    rfm69.setRegister(0x01, 0x04); // re-enter stand-by mode
 }

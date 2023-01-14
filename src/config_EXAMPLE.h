@@ -39,4 +39,7 @@ const char*          mqtt_id = "esp32-somfy-remote";
 const char*     status_topic = "smartHome/somfy-remote/status"; // Online / offline
 const char*        ack_topic = "smartHome/somfy-remote/ack"; // Commands ack "id: 0x184623, cmd: u"
 
-#define PORT_TX 23 // Output data on pin 23 (can range from 0 to 31). Check pin numbering on ESP8266.
+#define RFM_CHIP_SELECT 33  // this is the pin used for SPI control.  MUST be connected to the SPI Chip Select pin on the RFM69
+#define RFM_RESET_PIN 27    // this is the pin used to reset the RFM.  MUST be connected to the RESET pin on the RFM69
+#define RF_FREQUENCY 433.42 // RF frequency (in MHz) for Somfy-RTS system
+#define PORT_TX 4 // Output data on pin 4 (can range from 0 to 31). Check pin numbering on ESP8266.

@@ -15,15 +15,6 @@ Modifications should only be needed in config.h.
 
 */
 
-// GPIO macros
-#ifdef ESP32
-    #define SIG_HIGH GPIO.out_w1ts = 1 << PORT_TX
-    #define SIG_LOW  GPIO.out_w1tc = 1 << PORT_TX
-#elif ESP8266
-    #define SIG_HIGH GPIO_REG_WRITE(GPIO_OUT_W1TS_ADDRESS, 1 << PORT_TX)
-    #define SIG_LOW  GPIO_REG_WRITE(GPIO_OUT_W1TC_ADDRESS, 1 << PORT_TX)
-#endif
-
 // Store the rolling codes in NVS
 #ifdef ESP32
     #include <Preferences.h>
@@ -75,11 +66,11 @@ void setup() {
     Serial.begin(115200);
 
     // Output to 433.42MHz transmitter
-    pinMode(PORT_TX, OUTPUT);
+    pinMode(RFM_PORT_TX, OUTPUT);
     pinMode(RFM_CHIP_SELECT, OUTPUT);
     pinMode(RFM_RESET_PIN, OUTPUT);
 
-    SIG_LOW;
+    digitalWrite(RFM_PORT_TX, LOW);
 
     // Open storage for storing the rolling codes
     #ifdef ESP32
@@ -320,43 +311,43 @@ void SendCommand(byte *frame, byte sync) {
 
     if(sync == 2) { // Only with the first frame.
         //Wake-up pulse & Silence
-        SIG_HIGH;
+        digitalWrite(RFM_PORT_TX, HIGH);
         delayMicroseconds(9415);
-        SIG_LOW;
+        digitalWrite(RFM_PORT_TX, LOW);
         delayMicroseconds(89565);
     }
 
     // Hardware sync: two sync for the first frame, seven for the following ones.
     for (int i = 0; i < sync; i++) {
-        SIG_HIGH;
+        digitalWrite(RFM_PORT_TX, HIGH);
         delayMicroseconds(4*SYMBOL);
-        SIG_LOW;
+        digitalWrite(RFM_PORT_TX, LOW);
         delayMicroseconds(4*SYMBOL);
     }
 
     // Software sync
-    SIG_HIGH;
+    digitalWrite(RFM_PORT_TX, HIGH);
     delayMicroseconds(4550);
-    SIG_LOW;
+    digitalWrite(RFM_PORT_TX, LOW);
     delayMicroseconds(SYMBOL);
 
     //Data: bits are sent one by one, starting with the MSB.
     for(byte i = 0; i < 56; i++) {
         if(((frame[i/8] >> (7 - (i%8))) & 1) == 1) {
-            SIG_LOW;
+            digitalWrite(RFM_PORT_TX, LOW);
             delayMicroseconds(SYMBOL);
-            SIG_HIGH;
+            digitalWrite(RFM_PORT_TX, HIGH);
             delayMicroseconds(SYMBOL);
         }
         else {
-            SIG_HIGH;
+            digitalWrite(RFM_PORT_TX, HIGH);
             delayMicroseconds(SYMBOL);
-            SIG_LOW;
+            digitalWrite(RFM_PORT_TX, LOW);
             delayMicroseconds(SYMBOL);
         }
     }
 
-    SIG_LOW;
+    digitalWrite(RFM_PORT_TX, LOW);
     delayMicroseconds(30415); // Inter-frame silence
     rfm69.setRegister(0x01, 0x04); // re-enter stand-by mode
 }

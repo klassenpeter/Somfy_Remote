@@ -5,6 +5,10 @@
 #include <config.h>
 
 
+#define OP_MODE_REG_ADDR 0x01
+#define OP_MODE_REG_VAL_TX    0x0c
+#define OP_MODE_REG_VAL_STDBY 0x04
+
 class RFM69
 {
 private:
@@ -67,8 +71,17 @@ public:
     delay(100);
   }
 
+  void enterTxMode()
+  {
+    setRegister(OP_MODE_REG_ADDR, OP_MODE_REG_VAL_TX);
+  }
   //////////////////////////////////////
 
+
+  void enterStandbyMode()
+  {
+    setRegister(OP_MODE_REG_ADDR, OP_MODE_REG_VAL_STDBY); // re-enter stand-by mode
+  }
   void setFrequency(double f)
   {
 

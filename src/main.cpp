@@ -293,7 +293,7 @@ void BuildFrame(byte *frame, byte button, REMOTE remote) {
 }
 
 void SendCommand(byte *frame, byte sync) {
-    rfm69.setRegister(0x01, 0x0c); // enable transmission mode
+    rfm69.enterTxMode();
 
     if(sync == 2) { // Only with the first frame.
         //Wake-up pulse & Silence
@@ -335,5 +335,6 @@ void SendCommand(byte *frame, byte sync) {
 
     digitalWrite(RFM_PORT_TX, LOW);
     delayMicroseconds(30415); // Inter-frame silence
-    rfm69.setRegister(0x01, 0x04); // re-enter stand-by mode
+
+    rfm69.enterStandbyMode();
 }

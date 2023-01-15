@@ -4,14 +4,16 @@
 #include <SPI.h>
 #include <config.h>
 
-struct RFM69
-{
 
+class RFM69
+{
+private:
   uint8_t csPin;
   uint8_t resetPin;
 
   //////////////////////////////////////
 
+public:
   RFM69(uint8_t csPin, uint8_t resetPin)
   {
 

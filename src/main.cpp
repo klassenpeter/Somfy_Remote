@@ -57,12 +57,7 @@ void setup() {
     // USB serial port
     Serial.begin(115200);
 
-    // Output to 433.42MHz transmitter
-    pinMode(RFM_PORT_TX, OUTPUT);
-    pinMode(RFM_CHIP_SELECT, OUTPUT);
-    pinMode(RFM_RESET_PIN, OUTPUT);
 
-    digitalWrite(RFM_PORT_TX, LOW);
 
     // Open storage for storing the rolling codes
     #ifdef ESP32
@@ -127,7 +122,6 @@ void setup() {
     mqtt.setCallback(receivedCallback);
 
     rfm69.init();
-    rfm69.setFrequency(RF_FREQUENCY);
     Serial.println("RFM69 Radio initialized");
 }
 

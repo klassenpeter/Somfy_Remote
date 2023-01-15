@@ -1,7 +1,8 @@
-
+#pragma once
 // Basic Controls for RFM69 Transceiver using Continuous Mode via DIO2
 
 #include <SPI.h>
+#include <config.h>
 
 struct RFM69
 {
@@ -26,6 +27,11 @@ struct RFM69
 
   void init()
   {
+    pinMode(RFM_PORT_TX, OUTPUT);
+    pinMode(RFM_CHIP_SELECT, OUTPUT);
+    pinMode(RFM_RESET_PIN, OUTPUT);
+
+    digitalWrite(RFM_PORT_TX, LOW);
 
     reset();
     SPI.begin();
@@ -42,6 +48,10 @@ struct RFM69
     Serial.print(" SPI Device with Chip Select Pin=");
     Serial.print(csPin);
     Serial.print("\n\n");
+
+    // set output to 433.42MHz transmitter
+    setFrequency(RF_FREQUENCY);
+
   }
 
   //////////////////////////////////////

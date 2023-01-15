@@ -1,5 +1,4 @@
-#include <vector>
-#include <inttypes.h>
+#pragma once
 
 // You can add as many remote control emulators as you want by adding elements to the "remotes" vector
 // The id and mqtt_topic can have any value but must be unique
@@ -15,6 +14,9 @@
 // - u will make it go up
 // - s make it stop
 // - d will make it go down
+
+#include <vector>
+#include <inttypes.h>
 
 // Configuration of the remotes that will be emulated
 struct REMOTE {

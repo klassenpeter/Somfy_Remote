@@ -4,9 +4,8 @@
 #include <SPI.h>
 #include <config.h>
 
-
 #define OP_MODE_REG_ADDR 0x01
-#define OP_MODE_REG_VAL_TX    0x0c
+#define OP_MODE_REG_VAL_TX 0x0c
 #define OP_MODE_REG_VAL_STDBY 0x04
 
 class RFM69
@@ -57,7 +56,6 @@ public:
 
     // set output to 433.42MHz transmitter
     setFrequency(RF_FREQUENCY);
-
   }
 
   //////////////////////////////////////
@@ -76,7 +74,6 @@ public:
     setRegister(OP_MODE_REG_ADDR, OP_MODE_REG_VAL_TX);
   }
   //////////////////////////////////////
-
 
   void enterStandbyMode()
   {

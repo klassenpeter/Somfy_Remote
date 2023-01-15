@@ -24,14 +24,6 @@ Modifications should only be needed in config.h.
 #endif
 
 
-// Configuration of the remotes that will be emulated
-struct REMOTE {
-    unsigned int id;
-    char const* mqtt_topic;
-    unsigned int default_rolling_code;
-    uint32_t eeprom_address;
-};
-
 #include "config.h"
 
 // Wifi and MQTT

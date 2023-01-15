@@ -1,3 +1,6 @@
+#include <vector>
+#include <inttypes.h>
+
 // You can add as many remote control emulators as you want by adding elements to the "remotes" vector
 // The id and mqtt_topic can have any value but must be unique
 // default_rolling_code can be any unsigned int, usually leave it at 1
@@ -13,6 +16,13 @@
 // - s make it stop
 // - d will make it go down
 
+// Configuration of the remotes that will be emulated
+struct REMOTE {
+    unsigned int id;
+    char const* mqtt_topic;
+    unsigned int default_rolling_code;
+    uint32_t eeprom_address;
+};
 
 //                                 id            mqtt_topic     default_rolling_code     eeprom_address
 std::vector<REMOTE> const remotes = {{0x184623, "smartHome/livingRoom/blinds", 1,                0 }

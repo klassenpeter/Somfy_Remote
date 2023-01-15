@@ -2,6 +2,8 @@
 #include <vector>
 
 #include "RFM69.h"
+#include "remote.hpp"
+
 /* Adapted to run on ESP32 from original code at https://github.com/Nickduino/Somfy_Remote
 
 This program allows you to emulate a Somfy RTS or Simu HZ remote.

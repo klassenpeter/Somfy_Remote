@@ -17,17 +17,8 @@
 
 #include <vector>
 #include <inttypes.h>
+#include "remote.hpp"
 
-// Configuration of the remotes that will be emulated
-struct REMOTE
-{
-    unsigned int id;
-    char const *mqtt_topic;
-    unsigned int default_rolling_code;
-    uint32_t eeprom_address;
-};
-
-//                                 id            mqtt_topic     default_rolling_code     eeprom_address
 std::vector<REMOTE> const remotes = {
     {0x184623, "smartHome/livingRoom/blinds", 1, 0} //
     ,

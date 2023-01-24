@@ -266,12 +266,7 @@ void BuildFrame(byte *frame, byte button, REMOTE remote)
     Serial.print("Frame         : ");
     for (byte i = 0; i < 7; i++)
     {
-        if (frame[i] >> 4 == 0)
-        { //  Displays leading zero in case the most significant nibble is a 0.
-            Serial.print("0");
-        }
-        Serial.print(frame[i], HEX);
-        Serial.print(" ");
+        Serial.printf(" %02X", frame[i]);
     }
 
     // Checksum calculation: a XOR of all the nibbles
@@ -289,12 +284,7 @@ void BuildFrame(byte *frame, byte button, REMOTE remote)
     Serial.print("With checksum : ");
     for (byte i = 0; i < 7; i++)
     {
-        if (frame[i] >> 4 == 0)
-        {
-            Serial.print("0");
-        }
-        Serial.print(frame[i], HEX);
-        Serial.print(" ");
+        Serial.printf(" %02X", frame[i]);
     }
 
     // Obfuscation: a XOR of all the bytes
@@ -307,12 +297,7 @@ void BuildFrame(byte *frame, byte button, REMOTE remote)
     Serial.print("Obfuscated    : ");
     for (byte i = 0; i < 7; i++)
     {
-        if (frame[i] >> 4 == 0)
-        {
-            Serial.print("0");
-        }
-        Serial.print(frame[i], HEX);
-        Serial.print(" ");
+        Serial.printf(" %02X", frame[i]);
     }
     Serial.println("");
     Serial.print("Rolling Code  : ");

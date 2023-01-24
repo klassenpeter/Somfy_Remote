@@ -66,7 +66,7 @@ void setup()
     EEPROM.begin(1024);
 #endif
 
-// Clear all the stored rolling codes (not used during normal operation). Only ESP32 here (ESP8266 further below).
+    // Clear all the stored rolling codes (not used during normal operation). Only ESP32 here (ESP8266 further below).
 #ifdef ESP32
     if (reset_rolling_codes)
     {
@@ -255,10 +255,10 @@ void BuildFrame(byte *frame, byte button, REMOTE remote)
     EEPROM.get(remote.eeprom_address, code);
 #endif
 
-    frame[0] = 0xA7;            // Encryption key. Doesn't matter much
-    frame[1] = button << 4;     // Which button did  you press? The 4 LSB will be the checksum
-    frame[2] = code >> 8;       // Rolling code (big endian)
-    frame[3] = code;            // Rolling code
+    frame[0] = 0xA7;                  // Encryption key. Doesn't matter much
+    frame[1] = button << 4;           // Which button did  you press? The 4 LSB will be the checksum
+    frame[2] = code >> 8;             // Rolling code (big endian)
+    frame[3] = code;                  // Rolling code
     frame[4] = remote.id >> 16; // Remote address
     frame[5] = remote.id >> 8;  // Remote address
     frame[6] = remote.id;       // Remote address

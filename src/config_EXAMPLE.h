@@ -16,19 +16,23 @@
 // - d will make it go down
 
 #include <vector>
-#include <inttypes.h>
-#include "remote.hpp"
+#include "remote.h"
 
-std::vector<REMOTE> const remotes = {
-    {0x184623, "smartHome/livingRoom/blinds", 1, 0} //
+//   id
+//   |          mqtt_topic
+//   |          |                                       default_rolling_code
+//   |          |                                       |  eeprom_address
+//   |          |                                       |  |
+std::vector<REMOTE*> const remotes = {
+    new REMOTE(0x184623, "smartHome/livingRoom/blinds", 1, 0) //
     ,
-    {0x971547, "smartHome/office/blinds", 1, 4} //
+    new REMOTE(0x971547, "smartHome/office/blinds", 1, 4) //
     ,
-    {0x336124, "smartHome/balcony/awning", 1, 8} //
+    new REMOTE(0x336124, "smartHome/balcony/awning", 1, 8) //
     ,
-    {0x187542, "smartHome/kitchen/blinds", 1, 12} //
+    new REMOTE(0x187542, "smartHome/kitchen/blinds", 1, 12) //
     ,
-    {0x244412, "smartHome/room1/blinds", 1, 16} //
+    new REMOTE(0x244412, "smartHome/room1/blinds", 1, 16) //
 };
 
 // Change reset_rolling_codes to true to clear the rolling codes stored in the non-volatile storage

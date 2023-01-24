@@ -2,7 +2,7 @@
 #include <vector>
 
 #include "RFM69.h"
-#include "remote.hpp"
+#include "remote.h"
 
 /* Adapted to run on ESP32 from original code at https://github.com/Nickduino/Somfy_Remote
 
@@ -16,14 +16,6 @@ Serial communication of the original code is replaced by MQTT over WiFi.
 Modifications should only be needed in config.h.
 
 */
-
-// Store the rolling codes in NVS
-#ifdef ESP32
-#include <Preferences.h>
-Preferences preferences;
-#elif ESP8266
-#include <EEPROM.h>
-#endif
 
 #include "config.h"
 
@@ -49,7 +41,7 @@ RFM69 rfm69(RFM_CHIP_SELECT, RFM_RESET_PIN);
 
 byte frame[7];
 
-void BuildFrame(byte *frame, byte button, REMOTE remote);
+void BuildFrame(byte *frame, byte button, REMOTE *remote);
 void SendCommand(byte *frame, byte sync);
 void receivedCallback(char *topic, byte *payload, unsigned int length);
 void mqttconnect();
@@ -59,42 +51,20 @@ void setup()
     // USB serial port
     Serial.begin(115200);
 
-// Open storage for storing the rolling codes
-#ifdef ESP32
-    preferences.begin("somfy-remote", false);
-#elif ESP8266
-    EEPROM.begin(1024);
-#endif
-
     // Clear all the stored rolling codes (not used during normal operation). Only ESP32 here (ESP8266 further below).
-#ifdef ESP32
-    if (reset_rolling_codes)
-    {
-        preferences.clear();
-    }
-#endif
 
     // Print out all the configured remotes.
     // Also reset the rolling codes for ESP8266 if needed.
-    for (REMOTE remote : remotes)
+    for (REMOTE *remote : remotes)
     {
-        Serial.print("Simulated remote number : ");
-        Serial.println(remote.id, HEX);
-        Serial.print("Current rolling code    : ");
-        unsigned int current_code;
-
-#ifdef ESP32
-        current_code = preferences.getUInt((String(remote.id) + "rolling").c_str(), remote.default_rolling_code);
-#elif ESP8266
         if (reset_rolling_codes)
         {
-            EEPROM.put(remote.eeprom_address, remote.default_rolling_code);
-            EEPROM.commit();
+            remote->resetRollingCode();
         }
-        EEPROM.get(remote.eeprom_address, current_code);
-#endif
-
-        Serial.println(current_code);
+        Serial.print("Simulated remote number : ");
+        Serial.println(remote->getId(), HEX);
+        Serial.print("Current rolling code    : ");
+        Serial.println(remote->getRollingCode());
     }
     Serial.println();
 
@@ -155,11 +125,11 @@ void mqttconnect()
             Serial.println("connected");
 
             // Subscribe to the topic of each remote with QoS 1
-            for (REMOTE remote : remotes)
+            for (REMOTE *remote : remotes)
             {
-                mqtt.subscribe(remote.mqtt_topic, 1);
+                mqtt.subscribe(remote->getMqttTopic(), 1);
                 Serial.print("Subscribed to topic: ");
-                Serial.println(remote.mqtt_topic);
+                Serial.println(remote->getMqttTopic());
             }
 
             // Update status, message is retained
@@ -180,7 +150,7 @@ void receivedCallback(char *topic, byte *payload, unsigned int length)
 {
     char command = *payload; // 1st byte of payload
     bool commandIsValid = false;
-    REMOTE currentRemote;
+    REMOTE *currentRemote = nullptr;
 
     Serial.print("MQTT message received: ");
     Serial.println(topic);
@@ -195,9 +165,9 @@ void receivedCallback(char *topic, byte *payload, unsigned int length)
     // Command is valid if the payload contains one of the chars below AND the topic corresponds to one of the remotes
     if (length == 1 && (command == 'u' || command == 's' || command == 'd' || command == 'p'))
     {
-        for (REMOTE remote : remotes)
+        for (REMOTE *remote : remotes)
         {
-            if (strcmp(remote.mqtt_topic, topic) == 0)
+            if (strcmp(remote->getMqttTopic(), topic) == 0)
             {
                 currentRemote = remote;
                 commandIsValid = true;
@@ -238,30 +208,24 @@ void receivedCallback(char *topic, byte *payload, unsigned int length)
 
         // Send the MQTT ack message
         String ackString = "id: 0x";
-        ackString.concat(String(currentRemote.id, HEX));
+        ackString.concat(String(currentRemote->getId(), HEX));
         ackString.concat(", cmd: ");
         ackString.concat(command);
         mqtt.publish(ack_topic, ackString.c_str());
     }
 }
 
-void BuildFrame(byte *frame, byte button, REMOTE remote)
+void BuildFrame(byte *frame, byte button, REMOTE *remote)
 {
-    unsigned int code;
-
-#ifdef ESP32
-    code = preferences.getUInt((String(remote.id) + "rolling").c_str(), remote.default_rolling_code);
-#elif ESP8266
-    EEPROM.get(remote.eeprom_address, code);
-#endif
+    unsigned int code = remote->getRollingCode();
 
     frame[0] = 0xA7;                  // Encryption key. Doesn't matter much
     frame[1] = button << 4;           // Which button did  you press? The 4 LSB will be the checksum
     frame[2] = code >> 8;             // Rolling code (big endian)
     frame[3] = code;                  // Rolling code
-    frame[4] = remote.id >> 16; // Remote address
-    frame[5] = remote.id >> 8;  // Remote address
-    frame[6] = remote.id;       // Remote address
+    frame[4] = remote->getId() >> 16; // Remote address
+    frame[5] = remote->getId() >> 8;  // Remote address
+    frame[6] = remote->getId();       // Remote address
 
     Serial.print("Frame         : ");
     for (byte i = 0; i < 7; i++)
@@ -303,12 +267,7 @@ void BuildFrame(byte *frame, byte button, REMOTE remote)
     Serial.print("Rolling Code  : ");
     Serial.println(code);
 
-#ifdef ESP32
-    preferences.putUInt((String(remote.id) + "rolling").c_str(), code + 1); // Increment and store the rolling code
-#elif ESP8266
-    EEPROM.put(remote.eeprom_address, code + 1);
-    EEPROM.commit();
-#endif
+    remote->setRollingCode(code + 1);
 }
 
 void SendCommand(byte *frame, byte sync)

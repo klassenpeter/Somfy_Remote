@@ -17,10 +17,7 @@ public:
         myPrefName = (String(_id) + "_remote").c_str();
     }
 
-    void resetRollingCode()
-    {
-        setRollingCode(default_rolling_code);
-    }
+
 
     virtual void setRollingCode(unsigned int code)
     {

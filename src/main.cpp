@@ -34,10 +34,10 @@ RFM69 rfm69(RFM_CHIP_SELECT, RFM_RESET_PIN);
 
 // Buttons
 #define SYMBOL 640
-#define HAUT 0x2
-#define STOP 0x1
-#define BAS 0x4
-#define PROG 0x8
+#define BUTTON_UP 0x2
+#define BUTTON_STOP 0x1
+#define BUTTON_DOWN 0x4
+#define BUTTON_PROG 0x8
 
 byte frame[7];
 
@@ -180,22 +180,22 @@ void receivedCallback(char *topic, byte *payload, unsigned int length)
         if (command == 'u')
         {
             Serial.println("Monte"); // Somfy is a French company, after all.
-            BuildFrame(frame, HAUT, currentRemote);
+            BuildFrame(frame, BUTTON_UP, currentRemote);
         }
         else if (command == 's')
         {
             Serial.println("Stop");
-            BuildFrame(frame, STOP, currentRemote);
+            BuildFrame(frame, BUTTON_STOP, currentRemote);
         }
         else if (command == 'd')
         {
             Serial.println("Descend");
-            BuildFrame(frame, BAS, currentRemote);
+            BuildFrame(frame, BUTTON_DOWN, currentRemote);
         }
         else if (command == 'p')
         {
             Serial.println("Prog");
-            BuildFrame(frame, PROG, currentRemote);
+            BuildFrame(frame, BUTTON_PROG, currentRemote);
         }
 
         Serial.println("");

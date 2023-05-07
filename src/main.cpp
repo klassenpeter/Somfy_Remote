@@ -1,8 +1,16 @@
 #include <Arduino.h>
 #include <vector>
 
+// Wifi and MQTT
+#ifdef ESP32
+#include <WiFi.h>
+#elif ESP8266
+#include <ESP8266WiFi.h>
+#endif
+
 #include "RFM69.h"
 #include "remote.h"
+#include "wifi.hpp"
 
 /* Adapted to run on ESP32 from original code at https://github.com/Nickduino/Somfy_Remote
 
@@ -19,16 +27,9 @@ Modifications should only be needed in config.h.
 
 #include "config.h"
 
-// Wifi and MQTT
-#ifdef ESP32
-#include <WiFi.h>
-#elif ESP8266
-#include <ESP8266WiFi.h>
-#endif
 
 #include <PubSubClient.h>
 
-WiFiClient wifiClient;
 PubSubClient mqtt(wifiClient);
 RFM69 rfm69(RFM_CHIP_SELECT, RFM_RESET_PIN);
 
@@ -68,28 +69,7 @@ void setup()
     }
     Serial.println();
 
-    // Connect to WiFi
-    Serial.print("Connecting to ");
-    Serial.println(wifi_ssid);
-
-    WiFi.begin(wifi_ssid, wifi_password);
-
-#ifdef ESP32
-    WiFi.setHostname("ESP32-somfy");
-#elif ESP8266
-    WiFi.hostname("ESP8266-somfy");
-#endif
-
-    while (WiFi.status() != WL_CONNECTED)
-    {
-        delay(500);
-        Serial.print(".");
-    }
-
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+    connectWiFi();
 
     // Configure MQTT
     mqtt.setServer(mqtt_server, mqtt_port);

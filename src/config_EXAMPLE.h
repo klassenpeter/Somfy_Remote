@@ -18,21 +18,19 @@
 #include <vector>
 #include "remote.h"
 
-//   id
-//   |          mqttName
-//   |          |                                       default_rolling_code
-//   |          |                                       |  eeprom_address
-//   |          |                                       |  |
+#define HA_PREFIX "homeassistant"
+//             id
+//             |          we need to pass the HA_PREFIX here
+//             |          |          mqttName
+//             |          |          |            default_rolling_code
+//             |          |          |            |  eeprom_address
+//             |          |          |            |  |
 std::vector<REMOTE *> const remotes = {
-    new REMOTE(0x184623, "smartHome/livingRoom/blinds", 1, 0) //
-    ,
-    new REMOTE(0x971547, "smartHome/office/blinds", 1, 4) //
-    ,
-    new REMOTE(0x336124, "smartHome/balcony/awning", 1, 8) //
-    ,
-    new REMOTE(0x187542, "smartHome/kitchen/blinds", 1, 12) //
-    ,
-    new REMOTE(0x244412, "smartHome/room1/blinds", 1, 16) //
+    new REMOTE(0x184623, HA_PREFIX, "livingRoom", 1, 0),
+    new REMOTE(0x971547, HA_PREFIX, "office",     1, 4),
+    new REMOTE(0x336124, HA_PREFIX, "balcony",    1, 8),
+    new REMOTE(0x187542, HA_PREFIX, "kitchen",    1, 12),
+    new REMOTE(0x244412, HA_PREFIX, "room1",      1, 16) //
 };
 
 // Change reset_rolling_codes to true to clear the rolling codes stored in the non-volatile storage
@@ -49,8 +47,8 @@ const char *mqtt_user = "username";
 const char *mqtt_password = "secretPassword5678";
 const char *mqtt_id = "esp32-somfy-remote";
 
-const char *status_topic = "smartHome/somfy-remote/status"; // Online / offline
-const char *ack_topic = "smartHome/somfy-remote/ack";       // Commands ack "id: 0x184623, cmd: u"
+const char *status_topic = HA_PREFIX "/cover/somfy-remote/status"; // Online / offline
+const char *ack_topic = HA_PREFIX "/cover/somfy-remote/ack";       // Commands ack "id: 0x184623, cmd: u"
 
 #define RFM_CHIP_SELECT 33  // this is the pin used for SPI control.  MUST be connected to the SPI Chip Select pin on the RFM69
 #define RFM_RESET_PIN 27    // this is the pin used to reset the RFM.  MUST be connected to the RESET pin on the RFM69

@@ -1,7 +1,7 @@
 #pragma once
 
 // You can add as many remote control emulators as you want by adding elements to the "remotes" vector
-// The id and mqtt_topic can have any value but must be unique
+// The id and mqttName can have any value but must be unique
 // default_rolling_code can be any unsigned int, usually leave it at 1
 // eeprom_address must be incremented by 4 for each remote
 
@@ -19,11 +19,11 @@
 #include "remote.h"
 
 //   id
-//   |          mqtt_topic
+//   |          mqttName
 //   |          |                                       default_rolling_code
 //   |          |                                       |  eeprom_address
 //   |          |                                       |  |
-std::vector<REMOTE*> const remotes = {
+std::vector<REMOTE *> const remotes = {
     new REMOTE(0x184623, "smartHome/livingRoom/blinds", 1, 0) //
     ,
     new REMOTE(0x971547, "smartHome/office/blinds", 1, 4) //

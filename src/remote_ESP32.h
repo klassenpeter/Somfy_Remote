@@ -10,14 +10,13 @@ class REMOTE_ESP32 : public REMOTE_BASE
 {
 public:
     REMOTE_ESP32(unsigned int _id,
-                 char const *_mqtt_topic,
+                 char const *_prefix,
+                 char const *_mqtt_name,
                  unsigned int _default_rolling_code,
-                 uint32_t _eeprom_address):REMOTE_BASE(_id, _mqtt_topic, _default_rolling_code, _eeprom_address)
+                 uint32_t _eeprom_address) : REMOTE_BASE(_id, _prefix, _mqtt_name, _default_rolling_code, _eeprom_address)
     {
         myPrefName = (String(_id) + "_remote").c_str();
     }
-
-
 
     virtual void setRollingCode(unsigned int code)
     {

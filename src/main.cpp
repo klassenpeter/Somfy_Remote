@@ -109,7 +109,7 @@ void receivedCallback(char *topic, byte *payload, unsigned int length)
     {
         for (REMOTE *remote : remotes)
         {
-            if (strcmp(remote->getMqttTopic(), topic) == 0)
+            if (strcmp(remote->getMQTT_topic("set"), topic) == 0)
             {
                 currentRemote = remote;
                 commandIsValid = true;

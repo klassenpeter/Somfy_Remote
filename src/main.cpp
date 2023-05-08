@@ -11,6 +11,7 @@
 #include "RFM69.h"
 #include "remote.h"
 #include "wifi.hpp"
+#include "mqtt_client.h"
 
 /* Adapted to run on ESP32 from original code at https://github.com/Nickduino/Somfy_Remote
 
@@ -27,10 +28,6 @@ Modifications should only be needed in config.h.
 
 #include "config.h"
 
-
-#include <PubSubClient.h>
-
-PubSubClient mqtt(wifiClient);
 RFM69 rfm69(RFM_CHIP_SELECT, RFM_RESET_PIN);
 
 // Buttons
@@ -45,7 +42,6 @@ byte frame[7];
 void BuildFrame(byte *frame, byte button, REMOTE *remote);
 void SendCommand(byte *frame, byte sync);
 void receivedCallback(char *topic, byte *payload, unsigned int length);
-void mqttconnect();
 
 void setup()
 {
@@ -90,40 +86,6 @@ void loop()
     mqtt.loop();
 
     delay(100);
-}
-
-void mqttconnect()
-{
-    // Loop until reconnected
-    while (!mqtt.connected())
-    {
-        Serial.print("MQTT connecting ...");
-
-        // Connect to MQTT, with retained last will message "offline"
-        if (mqtt.connect(mqtt_id, mqtt_user, mqtt_password, status_topic, 1, 1, "offline"))
-        {
-            Serial.println("connected");
-
-            // Subscribe to the topic of each remote with QoS 1
-            for (REMOTE *remote : remotes)
-            {
-                mqtt.subscribe(remote->getMqttTopic(), 1);
-                Serial.print("Subscribed to topic: ");
-                Serial.println(remote->getMqttTopic());
-            }
-
-            // Update status, message is retained
-            mqtt.publish(status_topic, "online", true);
-        }
-        else
-        {
-            Serial.print("failed, status code =");
-            Serial.print(mqtt.state());
-            Serial.println("try again in 5 seconds");
-            // Wait 5 seconds before retrying
-            delay(5000);
-        }
-    }
 }
 
 void receivedCallback(char *topic, byte *payload, unsigned int length)
